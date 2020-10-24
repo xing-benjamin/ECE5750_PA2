@@ -11,8 +11,11 @@ int max_profit;
 
 typedef struct {
     int *qxcoor_max, *qycoor_max;
-    int max_profit, num_solutions;
-} Sol;
+    int *qxcoor, *qycoor;
+    int y, N;
+    int p;
+    int pid;
+} GM;
 
 
 int 
@@ -28,26 +31,26 @@ find_profit(int *qxcoor, int *qycoor, int N) {
 
 
 
-
 void
-bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max) {
-    //Sol *arg = varg;
-    //int *qxcoor_max, *qycoor_max;
-    //int num_solutions, max_profit;
-    //qxcoor_max = arg->qxcoor_max;
-    //qycoor_max = arg->qycoor_max;
-    //num_solutions = arg->num_solutions;
-    //max_profit = arg->max_profit;
-    
-    
-    register int valid;
-    
-    /* For the n-1 row, the for loop checks possible queen 
-     * positions in the column */
-    
-    int x;
-    for(x = 0; x < N; x++){
-        valid = 1;
+pqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max) {
+        int * qxcoor_max, qycoor_max;
+        int * qxcoor, qycoor;
+        int p, pid;
+        int y, N;
+        
+        
+        GM *arg = malloc(sizeof(*arg));
+        
+        qxcoor_max = arg->qxcoor_max;
+        qycoor_max = arg->qycoor_max;
+        qxcoor = arg->qxcoor;
+        qycoor = arg->qycoor;
+        y = arg->y;
+        N = arg->N;
+        p = arg->p;
+        pid = arg->pid;
+        
+        register int valid = 1;
 
         /*check that there is nothing in this column */
         int i;
@@ -106,12 +109,7 @@ bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max)
             
         }
 
-    
-    }
-    return;
-  }
-
-
+}
 
 
 
@@ -121,13 +119,14 @@ main(int argc, char **argv) {
     struct timespec start, end;
     double time;
 
-    int N;
+    int N, p;
     
     if(argc != 2) {
         printf("Usage: bqueen n\nAborting...\n");
         exit(0);
     }
     N = atoi(argv[1]);
+    p = atoi(argv[2]);
     
     int qxcoor[N];
     int qycoor[N];
@@ -139,19 +138,45 @@ main(int argc, char **argv) {
     }
 
     clock_gettime(CLOCK_MONOTONIC, &start);
+    pthread_t *threads = malloc(p * sizeof(threads));
     
-
+    
     int * qxcoor_max = (int *) malloc(N * sizeof(int));
     int * qycoor_max = (int *) malloc(N * sizeof(int));
+    
+    for(i = 0; i < p; i++) {
+        GM *arg = malloc(sizeof(*arg));
+        
+        arg->qxcoor_max = qxcoor_max;
+        arg->qycoor_max = qycoor_max;
+        arg->qxcoor = qxcoor;
+        arg->qycoor = qycoor;
+        arg->p = p;
+        arg->pid = i;
+        arg->y = N-1;
+        arg->N = N;
+        pthread_create(&threads[i], NULL, pqueen, arg);
+      }
+    
+
+
     //Sol *arg = malloc(sizeof(*arg));
     //arg->qxcoor_max = qxcoor_max;
     //arg->qycoor_max = qycoor_max;
     //arg->num_solutions = 0;
     //arg->max_profit = 0;
     
-    
+
+        pthread_create(&threads[i], NULL, pqueen, arg);
+        
+        
+        
     bqueen(qxcoor,qycoor, N-1, N, qxcoor_max, qycoor_max);
     clock_gettime(CLOCK_MONOTONIC, &end);
+    
+    for(i = 0; i < p; i++) {
+      pthread_join(threads[i], NULL);
+    }
     
     time =
     BILLION *(end.tv_sec - start.tv_sec) +(end.tv_nsec - start.tv_nsec);
@@ -169,4 +194,5 @@ main(int argc, char **argv) {
 
     return 0;
 }
+
 
