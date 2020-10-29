@@ -71,7 +71,7 @@ blsquares(int N, int x, int y, int board[N][N]) {
 			  if (board[i][l] == c) valid = 0;
 			  if (board[l][j] == c) valid = 0;
 			}
-			printf("x: %d, y: %d, c: %d, valid: %d \n", i, j, c, valid);
+			//printf("x: %d, y: %d, c: %d, valid: %d \n", i, j, c, valid);
 			if (valid) {
 			  int new_board[N][N];
 			  memcpy(new_board, board, N*N*sizeof(int));
@@ -88,7 +88,7 @@ blsquares(int N, int x, int y, int board[N][N]) {
 			  printf("\n");
 			}
 			printf("\n");
-		   found_solution = 1;
+      found_solution = 1;
 		}
 	}
     return;
@@ -118,13 +118,13 @@ main(int argc, char **argv) {
     //srand((unsigned) time(&t));
     srand(10);    
     create_board(N, S, board_stack);
- 	for (i = 0; i < N; i++) {
-	  for (j = 0; j < N; j++) {
-		printf("%d  ", board_stack[i][j]);
-	  }
-	  printf("\n");
-	}
-	printf("\n");
+    for (i = 0; i < N; i++) {
+      for (j = 0; j < N; j++) {
+        printf("%d  ", board_stack[i][j]);
+      }
+      printf("\n");
+    }
+    printf("\n");
 	
     clock_gettime(CLOCK_MONOTONIC, &start);
     
