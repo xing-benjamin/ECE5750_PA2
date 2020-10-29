@@ -26,20 +26,8 @@ find_profit(int *qxcoor, int *qycoor, int N) {
     return profit; 
 }
 
-
-
-
 void
 bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max) {
-    //Sol *arg = varg;
-    //int *qxcoor_max, *qycoor_max;
-    //int num_solutions, max_profit;
-    //qxcoor_max = arg->qxcoor_max;
-    //qycoor_max = arg->qycoor_max;
-    //num_solutions = arg->num_solutions;
-    //max_profit = arg->max_profit;
-    
-    
     register int valid;
     
     /* For the n-1 row, the for loop checks possible queen 
@@ -48,7 +36,6 @@ bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max)
     int x;
     for(x = 0; x < N; x++){
         valid = 1;
-
         /*check that there is nothing in this column */
         int i;
         for(i = 0; i < N; i++){
@@ -56,7 +43,6 @@ bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max)
             if(qxcoor[i] == x){
                 valid = 0;
             }
-            
             /* check that there is nothing in the diagonal */
             int dist_x = abs(qxcoor[i] - x);
             int dist_y = abs(qycoor[i] - y);
@@ -65,26 +51,17 @@ bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max)
             }
           }
         }
-        
-        
-        if (valid) {
-          
-            /*create the new lists */
-            //qxcoor_new = (int *) malloc(n * sizeof(int));
-            //qycoor_new = (int *) malloc(n * sizeof(int));
-            
+
+        if (valid) {            
             int qxcoor_new[N];
             int qycoor_new[N];
             
             memcpy(qxcoor_new, qxcoor, N*sizeof(int));
             memcpy(qycoor_new, qycoor, N*sizeof(int));
             
-            
-            
             qycoor_new[N-y-1] = y;
             qxcoor_new[N-y-1] = x; 
             
-
             if (y > 0) {
             /*make sure that n-1 is >= 0 */
               bqueen(qxcoor_new, qycoor_new, y-1, N, qxcoor_max, qycoor_max);
@@ -99,14 +76,9 @@ bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max)
                 
                 memcpy(qxcoor_max, qxcoor_new, N*sizeof(int));
                 memcpy(qycoor_max, qycoor_new, N*sizeof(int));
-                //qxcoor_max = qxcoor_new;
-                //qycoor_max = qxcoor_new;
               }
-            }
-            
+            }   
         }
-
-    
     }
     return;
   }
@@ -139,16 +111,9 @@ main(int argc, char **argv) {
     }
 
     clock_gettime(CLOCK_MONOTONIC, &start);
-    
 
     int * qxcoor_max = (int *) malloc(N * sizeof(int));
     int * qycoor_max = (int *) malloc(N * sizeof(int));
-    //Sol *arg = malloc(sizeof(*arg));
-    //arg->qxcoor_max = qxcoor_max;
-    //arg->qycoor_max = qycoor_max;
-    //arg->num_solutions = 0;
-    //arg->max_profit = 0;
-    
     
     bqueen(qxcoor,qycoor, N-1, N, qxcoor_max, qycoor_max);
     clock_gettime(CLOCK_MONOTONIC, &end);

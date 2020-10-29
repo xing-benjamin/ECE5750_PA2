@@ -9,6 +9,9 @@ int num_solutions;
 int max_profit;
 
 pthread_mutex_t lock;
+pthread_barrier_t  barrier;
+
+struct timespec ts1, ts2, ts3, ts4;
 
 typedef struct {
     int *qxcoor_max, *qycoor_max;
@@ -120,37 +123,37 @@ xqueen(int x, void *varg){
 
 void *
 pqueen(void *varg) {
-        int p, pid;
-        int y, N;
+    int p, pid;
+    int y, N;
         
-        GM *arg = varg;
-		y = arg->y;
-		N = arg->N;
-		p = arg->p;
-		pid = arg->pid;
-			
-        register int x;
-        
-        //assign the work based on pid, for p < N
-        if(y == N-1){
-			for(x =pid; x<N; x+=p){
-				xqueen(x, varg);
-			}
+    GM *arg = varg;
+	y = arg->y;
+	N = arg->N;
+	p = arg->p;
+	pid = arg->pid;
+		
+    pthread_barrier_wait(&barrier);
+    if(pid == 0){
+		clock_gettime(CLOCK_MONOTONIC, &ts2);
+	}
+	register int x;
+	
+	//assign the work based on pid, for p < N
+	if(y == N-1){
+		for(x =pid; x<N; x+=p){
+			xqueen(x, varg);
 		}
-		else{
-		    for(x =0; x<N; x++){
-				xqueen(x, varg);
-			}
+	}
+	else{
+		for(x =0; x<N; x++){
+			xqueen(x, varg);
 		}
+	}
 }
-
-
-
 
 int
 main(int argc, char **argv) {
-    struct timespec start, end;
-    double time;
+    double time_init, time_exec, time_fin;
 
     int N, p;
 
@@ -160,9 +163,6 @@ main(int argc, char **argv) {
     }
     N = atoi(argv[1]);
     p = atoi(argv[2]);
-    
-    clock_gettime(CLOCK_MONOTONIC, &start);
-
     
     int qxcoor[N];
     int qycoor[N];
@@ -175,12 +175,14 @@ main(int argc, char **argv) {
     }
     
     pthread_t *threads = malloc(p * sizeof(threads));
-    
+        
     //lock = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_init(&lock,NULL);
     
     int *qxcoor_max = (int *) malloc(N * sizeof(int));
     int *qycoor_max = (int *) malloc(N * sizeof(int));
+    
+    clock_gettime(CLOCK_MONOTONIC, &ts1);
     
     for(i = 0; i < p; i++) {
         GM *arg = malloc(sizeof(*arg));
@@ -192,26 +194,34 @@ main(int argc, char **argv) {
         arg->pid = i;
         arg->y = N-1;
         arg->N = N;
+        pthread_barrier_init(&barrier, NULL, p);
         pthread_create(&threads[i], NULL, pqueen, arg);
     }
-    //Sol *arg = malloc(sizeof(*arg));
-    //arg->qxcoor_max = qxcoor_max;
-    //arg->qycoor_max = qycoor_max;
-    //arg->num_solutions = 0;
-    //arg->max_profit = 0; 
-            
+    
     for(i = 0; i < p; i++) {
       pthread_join(threads[i], NULL);
-    }
+    }    
+    clock_gettime(CLOCK_MONOTONIC, &ts3);
+    
     pthread_mutex_destroy(&lock);
+
+    clock_gettime(CLOCK_MONOTONIC, &ts4);
     
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    time_init =
+    BILLION *(ts2.tv_sec - ts1.tv_sec) +(ts2.tv_nsec - ts1.tv_nsec);
+    time_init = time_init / BILLION;
     
-    time =
-    BILLION *(end.tv_sec - start.tv_sec) +(end.tv_nsec - start.tv_nsec);
-    time = time / BILLION;
+    time_exec =
+    BILLION *(ts3.tv_sec - ts2.tv_sec) +(ts3.tv_nsec - ts2.tv_nsec);
+    time_exec = time_exec / BILLION;
     
-    printf("Elapsed: %lf seconds\n", time);
+    time_fin =
+    BILLION *(ts4.tv_sec - ts3.tv_sec) +(ts4.tv_nsec - ts3.tv_nsec);
+    time_fin = time_fin / BILLION;
+    
+    printf("Elapsed init: %lf seconds\n", time_init);
+    printf("Elapsed exec: %lf seconds\n", time_exec);
+    printf("Elapsed fin: %lf seconds\n", time_fin);
     
     printf("Number of solutions: %d\n", num_solutions);
     printf("Max profit: %d\n", max_profit);

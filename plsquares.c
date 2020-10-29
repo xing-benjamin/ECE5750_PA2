@@ -13,17 +13,14 @@ typedef struct {
 int found_solution;
 pthread_mutex_t lock;
 
-
 void
 create_board(int N, double S, int board[N][N]) {
-    
     int i, j;
     for(i = 0; i < N; i++) {
         for(j = 0; j < N; j++) {
             board[i][j] = 0;
         }
     }
-    
     
     int n_filled = (int)(S * N * N);
     
@@ -63,43 +60,35 @@ plsquares(void *varg) {
     y = arg->y;
     pid = arg->pid;
     level = arg->level;
+    
     register int valid;
     
-    /* For the n-1 row, the for loop checks possible queen 
-     * positions in the column */
-    
-
+    /* starting at (x, 0), look for any empty squares */
     
     int i, j, c;
     int found_valid_sq = 0;
     if(found_solution == 0){
 		for(i = x; i < N; i++){
-			/*check that there is nothing in this column */
 			for(j = 0; j < N; j++){
-			  printf("x: %d, y: %d \n", i, j);
-			  fflush(stdout);
 			  if (board[i][j] == 0) {
-
 				found_valid_sq = 1;
 				break;
 			  }
-			  
 			}
 			if (found_valid_sq) break;
 		}
-			
 			
 		if (found_valid_sq) {
 		  // recurse;
 		  if(level){
 			  for (c = 1; c < N + 1; c++) {
-				
 				valid = 1;
 				int l;
 				for (l = 0; l < N; l++) {
 				  if (board[i][l] == c) valid = 0;
 				  if (board[l][j] == c) valid = 0;
 				}
+				printf("x: %d, y: %d, c: %d, valid: %d \n", i, j, c, valid);
 				if (valid) {
 				  GM arg1;
 				  arg1.P = P;
@@ -109,25 +98,22 @@ plsquares(void *varg) {
 				  arg1.y = j;
 				  arg1.level= 1;
 				  int **new_board;
-				  printf("got here");
-			      fflush(stdout);
-				  memcpy(new_board, board, N*N*sizeof(int));
+				  memcpy(&new_board, &board, N*N*sizeof(int));
 				  new_board[i][j] = c;
 				  arg1.board = new_board;
 				  plsquares(&arg1);
-				  
 				}
 			  }
-			}
+		    }
 		  else{
 			   for (c = pid +1; c < N + 1; c = c+P) {
-				
 				valid = 1;
 				int l;
 				for (l = 0; l < N; l++) {
 				  if (board[i][l] == c) valid = 0;
 				  if (board[l][j] == c) valid = 0;
 				}
+				printf("x: %d, y: %d, c: %d, valid: %d \n", i, j, c, valid);
 				if (valid) {
 				  GM arg1;
 				  arg1.P = P;
@@ -136,11 +122,8 @@ plsquares(void *varg) {
 				  arg1.x = i;
 				  arg1.y = j;
 				  arg1.level= 1;
-				      
-				  printf("got here");
-			      fflush(stdout);
 				  int **new_board;
-				  memcpy(new_board, board, N*N*sizeof(int));
+				  memcpy(&new_board, &board, N*N*sizeof(int));
 				  new_board[i][j] = c;
 				  arg1.board = new_board;
 				  plsquares(&arg1);
@@ -149,9 +132,7 @@ plsquares(void *varg) {
 			  }
 			}
 		}
-		
 		else {
-			
 			for (i = 0; i < N; i++) {
 			  for (j = 0; j < N; j++) {
 				printf("%d  ", board[i][j]);
@@ -159,14 +140,12 @@ plsquares(void *varg) {
 			  printf("\n");
 			}
 			printf("\n");
-			
 		    pthread_mutex_lock(&lock);
 		    found_solution = 1;
 		    pthread_mutex_unlock(&lock);
 		}
 	}
     return;
-
 }
 
 
@@ -180,7 +159,7 @@ main(int argc, char **argv) {
     double S;
     
     if(argc != 4) {
-        printf("Usage: bqueen n s\nAborting...\n");
+        printf("Usage: plsquares n s p\nAborting...\n");
         exit(0);
     }
     N = atoi(argv[1]);
@@ -188,12 +167,21 @@ main(int argc, char **argv) {
     char *ptr;
     S = strtod(argv[2], &ptr);
    
-    
+    found_solution = 0;
     int board_stack[N][N];
     int i,j;
     int level = 0;
-    srand((unsigned) time(&t));
+    //srand((unsigned) time(&t));
+    srand(10);    
     create_board(N, S, board_stack);
+    
+	for (i = 0; i < N; i++) {
+	  for (j = 0; j < N; j++) {
+		printf("%d  ", board_stack[i][j]);
+	  }
+	  printf("\n");
+	}
+	printf("\n");
     
     int **board = (int **) malloc(N * sizeof(int *));
     for(i = 0; i < N; i++) {
@@ -219,6 +207,11 @@ main(int argc, char **argv) {
         arg->level = level;
         pthread_create(&threads[i], NULL, plsquares, arg);
     }
+    
+    for(i = 0; i < P; i++) {
+      pthread_join(threads[i], NULL);
+    }
+    pthread_mutex_destroy(&lock);
     clock_gettime(CLOCK_MONOTONIC, &end);
     
     timet =
