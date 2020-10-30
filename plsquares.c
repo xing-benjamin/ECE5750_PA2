@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <pthread.h>
 
 #define BILLION 1000000000L
 
@@ -65,7 +66,7 @@ plsquares(void *varg) {
     level = arg->level;
     
     if (level == 0) {
-      //pthread_barrier_wait(&barrier);
+      pthread_barrier_wait(&barrier);
       if(pid == 0){
         clock_gettime(CLOCK_MONOTONIC, &ts2);
       }
@@ -185,8 +186,8 @@ main(int argc, char **argv) {
     int board_stack[N][N];
     int i,j;
     int level = 0;
-    //srand((unsigned) time(&t));
-    srand(10);    
+    srand((unsigned) time(&t));
+    //srand(10);    
     create_board(N, S, board_stack);
     
   for (i = 0; i < N; i++) {
@@ -201,6 +202,7 @@ main(int argc, char **argv) {
 
   clock_gettime(CLOCK_MONOTONIC, &ts1);
   pthread_t *threads = malloc(P * sizeof(threads));
+  pthread_barrier_init(&barrier, NULL, P);
   for(i = 0; i < P; i++) {
       GM *arg = malloc(sizeof(*arg));
       arg->P = P;
@@ -210,7 +212,6 @@ main(int argc, char **argv) {
       arg->y = 0;
       arg->pid = i;
       arg->level = level;
-      pthread_barrier_init(&barrier, NULL, P);
       pthread_create(&threads[i], NULL, plsquares, arg);
       
   }

@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <pthread.h>
+
 #define BILLION 1000000000L
 
 int num_solutions;
@@ -131,10 +132,12 @@ pqueen(void *varg) {
 	N = arg->N;
 	p = arg->p;
 	pid = arg->pid;
-		
-    pthread_barrier_wait(&barrier);
-    if(pid == 0){
-		clock_gettime(CLOCK_MONOTONIC, &ts2);
+	
+	if(y == N-1){
+		pthread_barrier_wait(&barrier);
+		if(pid == 0){
+			clock_gettime(CLOCK_MONOTONIC, &ts2);
+		}
 	}
 	register int x;
 	
