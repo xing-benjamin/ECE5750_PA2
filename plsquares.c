@@ -51,8 +51,7 @@ create_board(int N, double S, int board[N][N]) {
     }
 }
 
-
-void
+void *
 plsquares(void *varg) {
     GM *arg = varg;
     int P, N, x, y, level, pid;
