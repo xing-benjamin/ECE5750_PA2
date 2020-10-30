@@ -187,6 +187,8 @@ main(int argc, char **argv) {
     
     clock_gettime(CLOCK_MONOTONIC, &ts1);
     
+    pthread_barrier_init(&barrier, NULL, p);
+    
     for(i = 0; i < p; i++) {
         GM *arg = malloc(sizeof(*arg));
         arg->qxcoor_max = qxcoor_max;
@@ -197,7 +199,6 @@ main(int argc, char **argv) {
         arg->pid = i;
         arg->y = N-1;
         arg->N = N;
-        pthread_barrier_init(&barrier, NULL, p);
         pthread_create(&threads[i], NULL, pqueen, arg);
     }
     
