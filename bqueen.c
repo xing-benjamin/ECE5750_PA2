@@ -4,17 +4,16 @@
 #include <string.h>
 #define BILLION 1000000000L
 
-
-
-int num_solutions;
-int max_profit;
-
 typedef struct {
     int *qxcoor_max, *qycoor_max;
     int max_profit, num_solutions;
 } Sol;
 
+//global variables to be set by the recursive function with final values
+int num_solutions;
+int max_profit;
 
+//function to determine the profit based on the placement of all N queens
 int 
 find_profit(int *qxcoor, int *qycoor, int N) {
     int profit = 0;
@@ -26,6 +25,9 @@ find_profit(int *qxcoor, int *qycoor, int N) {
     return profit; 
 }
 
+/*function to determine the placement of the N queens so that the
+*constraints about 1 queen per diagonal, row and column is maintained
+*/
 void
 bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max) {
     register int valid;
@@ -36,14 +38,14 @@ bqueen(int *qxcoor, int *qycoor, int y, int N, int *qxcoor_max, int *qycoor_max)
     int x;
     for(x = 0; x < N; x++){
         valid = 1;
-        /*check that there is nothing in this column */
+        /*check that there are no other queens in this column */
         int i;
         for(i = 0; i < N; i++){
           if (qxcoor[i] != -1) {
             if(qxcoor[i] == x){
                 valid = 0;
             }
-            /* check that there is nothing in the diagonal */
+            /* check that there are no other queens in the diagonal */
             int dist_x = abs(qxcoor[i] - x);
             int dist_y = abs(qycoor[i] - y);
             if(dist_x == dist_y) {
@@ -114,7 +116,7 @@ main(int argc, char **argv) {
 
     int * qxcoor_max = (int *) malloc(N * sizeof(int));
     int * qycoor_max = (int *) malloc(N * sizeof(int));
-    
+    //call the recursive function
     bqueen(qxcoor,qycoor, N-1, N, qxcoor_max, qycoor_max);
     clock_gettime(CLOCK_MONOTONIC, &end);
     

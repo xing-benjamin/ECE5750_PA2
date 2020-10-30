@@ -11,12 +11,19 @@ typedef struct {
     int N, P, pid, x, y, level;
 } GM;
 
+//global variable to be set by the recursive function with final values
 int found_solution;
-pthread_mutex_t lock;
-pthread_barrier_t  barrier;
 
+/* a lock to prevent multiple threads from writing/reading found solution */
+pthread_mutex_t lock;
+
+//to enable more consistent timing
+pthread_barrier_t  barrier;
 struct timespec ts1, ts2, ts3, ts4;
 
+/* creates the board based on S and N
+ * 
+ */
 void
 create_board(int N, double S, int board[N][N]) {
     int i, j;
@@ -80,7 +87,6 @@ plsquares(void *varg) {
     if(found_solution == 0){
       for(i = x; i < N; ++i){
         for(j = 0; j < N; ++j){
-          //if (board[i][j] == 0) {
           if (board[i*N + j] == 0) {
             found_valid_sq = 1;
             break;
@@ -90,12 +96,14 @@ plsquares(void *varg) {
       }
       
       if (found_valid_sq) {
-        // recurse;
+        // recurse
         if(level){
           for (c = 1; c < N + 1; c++) {
             if (found_solution) break;
             valid = 1;
             int l;
+            /*for the empty square determine if there are any of the
+             * same colors in the column or row corresponding to it*/
             for (l = 0; l < N; l++) {
               if (board[i*N + l] == c) valid = 0;
               if (board[l*N + j] == c) valid = 0;
@@ -154,6 +162,7 @@ plsquares(void *varg) {
           printf("\n");
         }
         printf("\n");
+
         pthread_mutex_lock(&lock);
         found_solution = 1;
         pthread_mutex_unlock(&lock);
@@ -185,6 +194,7 @@ main(int argc, char **argv) {
     int board_stack[N][N];
     int i,j;
     int level = 0;
+    //create a random variable seed for the board creation
     srand((unsigned) time(&t));
     //srand(10);    
     create_board(N, S, board_stack);

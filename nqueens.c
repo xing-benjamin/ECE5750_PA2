@@ -6,12 +6,16 @@
 
 #define BILLION 1000000000L
 
+//global variables to be set by the recursive function with final values
 int num_solutions;
 int max_profit;
 
+/* a lock to prevent multiple threads from writing/reading num_solutions
+* and max profit */
 pthread_mutex_t lock;
-pthread_barrier_t  barrier;
 
+//to enable more consistent timing
+pthread_barrier_t  barrier;
 struct timespec ts1, ts2, ts3, ts4;
 
 typedef struct {
@@ -22,7 +26,7 @@ typedef struct {
     int pid;
 } GM;
 
-
+//function to determine the profit based on the placement of all N queens
 int 
 find_profit(int *qxcoor, int *qycoor, int N) {
     int profit = 0;
@@ -36,6 +40,9 @@ find_profit(int *qxcoor, int *qycoor, int N) {
 
 void *pqueen(void *varg);
 
+/*function to determine the placement of the N queens so that the
+*constraints about 1 queen per diagonal, row and column is maintained
+*/
 void 
 xqueen(int x, void *varg){
 	int *qxcoor_max, *qycoor_max;
@@ -73,11 +80,7 @@ xqueen(int x, void *varg){
 	}
 	
 	if (valid) {
-	  
-		/*create the new lists */
-		//qxcoor_new = (int *) malloc(n * sizeof(int));
-		//qycoor_new = (int *) malloc(n * sizeof(int));
-		
+
 		int qxcoor_new[N];
 		int qycoor_new[N];
 		
@@ -112,8 +115,7 @@ xqueen(int x, void *varg){
 			
 			memcpy(qxcoor_max, qxcoor_new, N*sizeof(int));
 			memcpy(qycoor_max, qycoor_new, N*sizeof(int));
-			//qxcoor_max = qxcoor_new;
-			//qycoor_max = qxcoor_new;
+
 		  }
 		  
 		  pthread_mutex_unlock(&lock);
@@ -122,6 +124,7 @@ xqueen(int x, void *varg){
 	}	
 }
 
+//function the threads go to to start the recursion
 void *
 pqueen(void *varg) {
     int p, pid;
@@ -179,7 +182,6 @@ main(int argc, char **argv) {
     
     pthread_t *threads = malloc(p * sizeof(threads));
         
-    //lock = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_init(&lock,NULL);
     
     int *qxcoor_max = (int *) malloc(N * sizeof(int));
@@ -189,6 +191,7 @@ main(int argc, char **argv) {
     
     pthread_barrier_init(&barrier, NULL, p);
     
+    //create threads
     for(i = 0; i < p; i++) {
         GM *arg = malloc(sizeof(*arg));
         arg->qxcoor_max = qxcoor_max;
